@@ -48,8 +48,7 @@ func (al Alog) Start() {
 			wg.Wait()
 			al.shutdown()
 			return
-		default:
-			msg := <-al.msgCh
+		case msg := <-al.msgCh:
 			wg.Add(1)
 			go al.write(msg, wg)
 		}
@@ -66,10 +65,10 @@ func (al Alog) formatMessage(msg string) string {
 func (al Alog) write(msg string, wg *sync.WaitGroup) {
 	al.m.Lock()
 	defer al.m.Unlock()
-	_, err := al.dest.Write([]byte(al.formatMessage(msg)))
 	if wg != nil {
-		wg.Done()
+		defer wg.Done()
 	}
+	_, err := al.dest.Write([]byte(al.formatMessage(msg)))
 
 	if err != nil {
 		go func(e error) {
